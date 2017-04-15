@@ -19,7 +19,6 @@ import StringIO
 import numpy as np
 import tensorflow as tf
 
-from magenta.music import note_sequence_io
 from magenta.protobuf import music_pb2
 
 MUSICNET_SAMPLE_RATE = 44100
@@ -38,8 +37,11 @@ def note_interval_tree_to_sequence_proto(note_interval_tree, sample_rate):
   Returns:
     A NoteSequence proto containing the notes in the interval tree.
   """
-  note_intervals = note_interval_tree.items()
   sequence = music_pb2.NoteSequence()
+
+  # Sort note intervals by onset time.
+  note_intervals = sorted(note_interval_tree,
+                          key=lambda note_interval: note_interval.begin)
 
   # MusicNet represents "instruments" as MIDI program numbers. Here we map each
   # program to a separate MIDI instrument.
@@ -95,9 +97,7 @@ def musicnet_iterator(musicnet_file):
 
     sequence.filename = file_id
     sequence.collection_name = 'MusicNet'
-
-    sequence.id = note_sequence_io.generate_note_sequence_id(
-        sequence.filename, sequence.collection_name, 'musicnet')
+    sequence.id = '/id/musicnet/%s' % file_id
 
     sequence.source_info.source_type = (
         music_pb2.NoteSequence.SourceInfo.PERFORMANCE_BASED)

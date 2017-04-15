@@ -98,19 +98,19 @@ class EventSequenceRnnModel(mm.BaseModel):
       feed_dict[graph_temperature[0]] = temperature
     final_state, softmax = self._session.run(
         [graph_final_state, graph_softmax], feed_dict)
-    indices = self._config.encoder_decoder.extend_event_sequences(
-        event_sequences, softmax)
-
-    p = softmax[range(len(event_sequences)), -1, indices]
 
     if softmax.shape[1] > 1:
       # The inputs batch is longer than a single step, so we also want to
       # compute the log-likelihood of the event sequences up until the step
       # we're generating.
       loglik = self._config.encoder_decoder.evaluate_log_likelihood(
-          event_sequences, softmax)
+          event_sequences, softmax[:, :-1, :])
     else:
       loglik = np.zeros(len(event_sequences))
+
+    indices = self._config.encoder_decoder.extend_event_sequences(
+        event_sequences, softmax)
+    p = softmax[range(len(event_sequences)), -1, indices]
 
     return final_state, loglik + np.log(p)
 
@@ -476,13 +476,16 @@ class EventSequenceRnnModel(mm.BaseModel):
 
     loglik = np.empty(len(event_sequences))
 
+    # Since we're computing log-likelihood and not generating, the inputs batch
+    # doesn't need to include the final event in each sequence.
     if control_events is not None:
       # We are conditioning on a control sequence.
       inputs = self._config.encoder_decoder.get_inputs_batch(
-          control_events, event_sequences, full_length=True)
+          control_events, [events[:-1] for events in event_sequences],
+          full_length=True)
     else:
       inputs = self._config.encoder_decoder.get_inputs_batch(
-          event_sequences, full_length=True)
+          [events[:-1] for events in event_sequences], full_length=True)
 
     graph_initial_state = self._session.graph.get_collection('initial_state')[0]
     initial_state = np.tile(

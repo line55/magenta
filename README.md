@@ -53,14 +53,6 @@ conda create -n magenta python=2.7 jupyter
 source activate magenta
 ```
 
-Install the
-[latest Tensorflow Pip package](https://www.tensorflow.org/get_started/os_setup.html#using-pip)
-for Python 2.7.  Note that you should skip the step for activating the
-`tensorflow` environment because you've already activated your `magenta`
-environment above. The important steps are selecting the correct binary
-(`export TF_BINARY_URL=...`) and installing that binary
-(`pip install --ignore-installed --upgrade $TF_BINARY_URL`).
-
 Install the Magenta pip package:
 
 ```
@@ -148,8 +140,8 @@ First, clone this repository:
 git clone https://github.com/tensorflow/magenta.git
 ```
 
-Next, [install Bazel](https://bazel.build/docs/install.html). We recommend the
-latest version, currently 0.4.0.
+Next, [install Bazel](https://bazel.build/docs/install.html). We require the
+latest version, currently 0.4.5.
 
 You will also need to install some required python dependencies. We recommend
 using a conda environment and installing with pip:
